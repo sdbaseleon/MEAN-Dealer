@@ -1,0 +1,206 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.10/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+<style>
+td {
+	padding: 7px;
+}
+.hl {
+	background-color: #FFFF00;
+}
+.dehl {
+	background-color: white;
+}
+</style>
+</head>
+<body ng-app="myapp">
+
+	<div ng-controller="MyController" align="center">
+		<br><br><br><br>
+		<button ng-click="myData.doClick(item, $event)" class="btn btn-primary">New Deck</button>
+		<br>
+		<br>
+		<button ng-click="myData.prevClick(item, $event)" class="btn btn-primary">Prev Deck</button>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<button ng-click="myData.nextClick(item, $event)" class="btn btn-primary">Next Deck</button>
+		<br><br><br>
+		<table cellpadding="6" id="matrix" border="1">
+			<tr>
+				<td>&nbsp;</td>
+				<td>A</td>
+				<td>2</td>
+				<td>3</td>
+				<td>4</td>
+				<td>5</td>
+				<td>6</td>
+				<td>7</td>
+				<td>8</td>
+				<td>9</td>
+				<td>10</td>
+				<td>J</td>
+				<td>Q</td>
+				<td>K</td>
+			</tr>
+			<tr ng-repeat="suit in myData.matrix">
+				<td style="color:red" ng-if="suit == myData.matrix[0]">
+					S
+				</td>
+				<td style="color:green" ng-if="suit == myData.matrix[1]">
+					D
+				</td>
+				<td style="color:blue" ng-if="suit == myData.matrix[2]">
+					H
+				</td>
+				<td style="color:black" ng-if="suit == myData.matrix[3]">
+					C
+				</td>
+				<td ng-repeat="faceValue in suit" >
+					<div style="color:red" ng-if="faceValue[0] == 0">
+						{{ faceValue[1] }}
+					</div>
+					<div style="color:green" ng-if="faceValue[0] == 1">
+						{{ faceValue[1] }}
+					</div>
+					<div style="color:blue" ng-if="faceValue[0] == 2">
+						{{ faceValue[1] }}
+					</div>
+					<div style="color:black" ng-if="faceValue[0] == 3">
+						{{ faceValue[1] }}
+					</div>
+				</td>
+			</tr>
+		</table>
+		<br>
+		<h3>Score:</h3>
+		<h4>{{ myData.score }} / 104</h4>
+		<br>
+		<h4>Avg: {{ myData.avgScore }}</h4>
+	</div>
+
+	<script>
+		angular.module("myapp", [])
+        .controller("MyController", function($scope, $http) {
+            $scope.myData = {};
+            $scope.myData.n = 0;
+
+            $scope.myData.doClick = function(item, event) {
+            	$http({method: 'GET', url: "http://localhost:3000/getAvgScore", 
+                	headers: { 'Access-Control-Allow-Origin': "null" }
+                }).success(function(data, status, headers, config) {
+                	$scope.myData.n = data.length;
+                	var avgScore = getAvgScore(data);
+                	$scope.myData.avgScore = avgScore;
+                }).error(function(data, status, headers, config) {
+                    alert("AJAX failed!");
+                });
+
+                $http({method: 'GET', url: "http://localhost:3000/insertRandMatrix", 
+                	headers: { 'Access-Control-Allow-Origin': "null" }
+                }).success(function(data, status, headers, config) {
+                	data = convertMatrixWithLetters(data);
+                    $scope.myData.matrix = data.deck;
+                    $scope.myData.score = data.score;
+                }).error(function(data, status, headers, config) {
+                    alert("AJAX failed!");
+                });
+
+            }
+
+            $scope.myData.prevClick = function(item, event) {
+
+            	$scope.myData.n--;
+                $http({method: 'GET', url: "http://localhost:3000/findMatrix?n=" +
+                	$scope.myData.n, 
+                	headers: { 'Access-Control-Allow-Origin': "null" }
+                }).success(function(data, status, headers, config) {
+                	if(data != null)
+                	{
+	                	data = convertMatrixWithLetters(data);
+	                    $scope.myData.matrix = data.deck;
+	                    $scope.myData.score = data.score;
+	                }
+                }).error(function(data, status, headers, config) {
+                    alert("AJAX failed!");
+                });
+
+                $http({method: 'GET', url: "http://localhost:3000/getAvgScore", 
+                	headers: { 'Access-Control-Allow-Origin': "null" }
+                }).success(function(data, status, headers, config) {
+                	var avgScore = getAvgScore(data);
+                	$scope.myData.avgScore = avgScore;
+                }).error(function(data, status, headers, config) {
+                    alert("AJAX failed!");
+                });
+            }
+
+            $scope.myData.nextClick = function(item, event) {
+
+            	$scope.myData.n++;
+                $http({method: 'GET', url: "http://localhost:3000/findMatrix?n=" +
+                	$scope.myData.n, 
+                	headers: { 'Access-Control-Allow-Origin': "null" }
+                }).success(function(data, status, headers, config) {
+                	if(data != null)
+                	{
+	                	data = convertMatrixWithLetters(data);
+	                    $scope.myData.matrix = data.deck;
+	                    $scope.myData.score = data.score;
+	                }
+                }).error(function(data, status, headers, config) {
+                    alert("AJAX failed!");
+                });
+
+                $http({method: 'GET', url: "http://localhost:3000/getAvgScore", 
+                	headers: { 'Access-Control-Allow-Origin': "null" }
+                }).success(function(data, status, headers, config) {
+                	var avgScore = getAvgScore(data);
+                	$scope.myData.avgScore = avgScore;
+                }).error(function(data, status, headers, config) {
+                    alert("AJAX failed!");
+                });
+            }
+
+        });
+
+		function getAvgScore(entries)
+		{
+			var score = 0;
+			for (var i = 0; i < entries.length; i++)
+			{
+				score += entries[i].score;
+			}
+			score /= entries.length;
+
+			return score;
+		}
+
+		function convertMatrixWithLetters(data)
+		{
+			for (var i = 0; i < 4; i++)
+        	{
+        		for (var j = 0; j < 13; j++)
+        		{
+        			switch (data.deck[i][j][1])
+        			{
+        				case 0:
+        					data.deck[i][j][1] = 'A';
+        					break;
+        				case 10:
+        					data.deck[i][j][1] = 'J';
+        					break;
+        				case 11:
+        					data.deck[i][j][1] = 'Q';
+        					break;
+        				case 12:
+        					data.deck[i][j][1] = 'K';
+        					break;
+        			}
+        		}
+        	}
+        	return data;
+		}
+	</script>
+</body>
+</html>
